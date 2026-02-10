@@ -32,6 +32,9 @@ int main(int argc, char * argv[]) {
 	return 1;
     }
 
+    char * debugVar = std::getenv("DEBUG");
+    bool debug = (debugVar != nullptr && std::strcmp(debugVar, "true") == 0);
+
     if(std::strcmp(argv[1], "decompose") == 0) {
 	if(argc < 3) {
 	    std::puts("Please supply number to decompose");
@@ -70,7 +73,13 @@ int main(int argc, char * argv[]) {
 
 	size_t idx = 0;
 	while(idx < program.size()) {
-	    Rational result = program[idx] * Rational(static_cast<int>(number));
+	    Rational step = program[idx];
+	    Rational result = step * Rational(static_cast<int>(number));
+	    if(debug) {
+		std::printf("DEBUG: idx = %d, %d/%d * %d = %d/%d\n", idx,
+			    step.getNumerator(), step.getDenominator(), number,
+			    result.getNumerator(), result.getDenominator());
+	    }
 	    if(result.getDenominator() == 1) {
 		number = result.getNumerator();
 		idx = 0;
