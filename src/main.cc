@@ -9,9 +9,9 @@
 
 void printHelp() {
     std::puts("Command line arguments:");
-    std::puts("decompose <num> .......... get prime factorisation");
-    std::puts("vars <num1, num2, ...> ... get number input from variable values");
-    std::puts("<filename> <number> ...... program to read in and execute with the given number input");
+    std::puts("decompose <num> ............... get prime factorisation");
+    std::puts("vars <num1, num2, ...> ........ get number input from variable values");
+    std::puts("<filename> <number> [limit] ... program to read in and execute with the given number input");
     std::puts("NOTE: set environment DEBUG=true to see how the input number is processed through a program");
 }
 
@@ -51,6 +51,10 @@ int main(int argc, char * argv[]) {
 	if(argc < 3) {
 	    std::puts("Please supply input number to program");
 	}
+	size_t limit = 0;
+	if(argc == 4) {
+	    limit = static_cast<size_t>(std::atoi(argv[3]));
+	}
 	uint64_t number = static_cast<uint64_t>(std::atoi(argv[2]));
 	std::vector<Rational> program;
 	std::ifstream programFile(argv[1]);
@@ -62,7 +66,8 @@ int main(int argc, char * argv[]) {
 	programFile.close();
 
 	size_t idx = 0;
-	while(idx < program.size()) {
+	size_t counter = 0;
+	while(idx < program.size() && (limit == 0 || counter++ < limit)) {
 	    Rational step = program[idx];
 	    Rational result = step * Rational(static_cast<uint64_t>(number));
 	    if(debug) {
@@ -78,6 +83,9 @@ int main(int argc, char * argv[]) {
 	    }
 	}
 
+	if(limit > 0) {
+	    std::printf("ENDED AFTER %lu ITERATIONS\n", counter-1);
+	}
 	std::printf("RESULT: %llu\n", number);
     }
 
