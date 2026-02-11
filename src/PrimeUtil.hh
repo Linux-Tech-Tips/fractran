@@ -20,7 +20,7 @@ uint64_t currentMax = 100;
 
 std::vector<uint64_t> primes;
 
-uint32_t primeIdx = 0;
+uint64_t primeIdx = 0;
 
 uint64_t IntegerPower(uint64_t base, uint64_t exp) {
     /* Base cases */
@@ -73,19 +73,19 @@ uint64_t GetNextPrime() {
 
 namespace primeutil {
 
-uint64_t GetNumber(std::vector<uint32_t> powers) {
+uint64_t GetNumber(std::vector<uint64_t> powers) {
     primeIdx = 0;
     uint64_t total = 1;
-    for(uint32_t num : powers) {
+    for(uint64_t num : powers) {
 	total *= IntegerPower(GetNextPrime(), static_cast<int64_t>(num));
     }
     return total;
 }
 
-std::map<uint32_t, uint32_t> GetPrimeFactors(uint32_t number) {
-    std::map<uint32_t, uint32_t> result;
+std::map<uint64_t, uint64_t> GetPrimeFactors(uint64_t number) {
+    std::map<uint64_t, uint64_t> result;
     primeIdx = 0;
-    uint32_t currentPrime = GetNextPrime();
+    uint64_t currentPrime = GetNextPrime();
     while(number > 1) {
 	if(number % currentPrime == 0) {
 	    number /= currentPrime;

@@ -1,14 +1,3 @@
-/* TODO Fractran make it work!! 
- * -> reads in a number
- * -> reads in fractions from a string cli input
- * -> runs the program either for N iterations or until end, then prints out state
- *
- * -> able to decompose number into prime factors, or build a number based on given variables
- *
- * -> CLI args: fractran with either file or stdin
- *              decompose num
- *              vars list of nums
- */
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -23,6 +12,7 @@ void printHelp() {
     std::puts("decompose <num> .......... get prime factorisation");
     std::puts("vars <num1, num2, ...> ... get number input from variable values");
     std::puts("<filename> <number> ...... program to read in and execute with the given number input");
+    std::puts("NOTE: set environment DEBUG=true to see how the input number is processed through a program");
 }
 
 int main(int argc, char * argv[]) {
@@ -51,7 +41,7 @@ int main(int argc, char * argv[]) {
 	    std::puts("Please supply at least one variable value");
 	    return 1;
 	}
-	std::vector<uint32_t> powers;
+	std::vector<uint64_t> powers;
 	for(uint8_t i = 2; i < argc; ++i) {
 	    powers.push_back(std::atoi(argv[i]));
 	}
@@ -61,7 +51,7 @@ int main(int argc, char * argv[]) {
 	if(argc < 3) {
 	    std::puts("Please supply input number to program");
 	}
-	uint32_t number = static_cast<uint32_t>(std::atoi(argv[2]));
+	uint64_t number = static_cast<uint64_t>(std::atoi(argv[2]));
 	std::vector<Rational> program;
 	std::ifstream programFile(argv[1]);
 
@@ -74,9 +64,9 @@ int main(int argc, char * argv[]) {
 	size_t idx = 0;
 	while(idx < program.size()) {
 	    Rational step = program[idx];
-	    Rational result = step * Rational(static_cast<int>(number));
+	    Rational result = step * Rational(static_cast<uint64_t>(number));
 	    if(debug) {
-		std::printf("DEBUG: idx = %d, %d/%d * %d = %d/%d\n", idx,
+		std::printf("DEBUG: idx = %llu, %llu/%llu * %llu = %llu/%llu\n", idx,
 			    step.getNumerator(), step.getDenominator(), number,
 			    result.getNumerator(), result.getDenominator());
 	    }
@@ -88,14 +78,7 @@ int main(int argc, char * argv[]) {
 	    }
 	}
 
-	std::printf("RESULT: %d\n", number);
-
-	// TODO Implement factran interpreter
-	// might actually need to use a larger/infinite precision data type or something idk
-	// what to do here:
-	// -> load file, read file lines into std::vector of Rational instances
-	// go through all fractions and multiply, if result whole number, reset and replace current n with result, if not, move on to the next fraction
-	// once end reached, end the loop
+	std::printf("RESULT: %llu\n", number);
     }
 
     return 0;

@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <regex>
 #include <numeric>
+#include <limits>
 #include <cstdlib>
 #include <cstdint>
 #include <cmath>
@@ -21,16 +22,16 @@ class Rational {
 
     private:
 	/** The numerator of the Rational */
-	uint32_t m_a;
+	uint64_t m_a;
 	/** The denominator of the Rational */
-	uint32_t m_b;
+	uint64_t m_b;
 	/** Whether the number is negative */
 	bool m_negative;
 
 	/** Utility member function to simplify the fraction */
 	void simplify(void) {
 	    /* Simplify terms */
-	    uint32_t gcd = std::gcd(m_a, m_b);
+	    uint64_t gcd = std::gcd(m_a, m_b);
 	    if(gcd > 1) {
 		m_a /= gcd;
 		m_b /= gcd;
@@ -43,8 +44,8 @@ class Rational {
 	/** Static member function that creates a rational instance from a floating point number */
 	static Rational fromFloat(float number) {
 	    /* Getting unsigned integer representation of float, up to specific precision */
-	    uint32_t a = static_cast<uint32_t>(std::abs(number) * FLOAT_CONVERSION_PRECISION);
-	    uint32_t b = FLOAT_CONVERSION_PRECISION;
+	    uint64_t a = static_cast<uint64_t>(std::abs(number) * FLOAT_CONVERSION_PRECISION);
+	    uint64_t b = FLOAT_CONVERSION_PRECISION;
 	    bool negative = (number < 0.0f);
 	    /* Creating new Rational instance with the given parameters */
 	    return Rational {a, b, negative};
@@ -62,8 +63,8 @@ class Rational {
 
 	    } else if(std::regex_match(number, matches, std::regex("([-+]?)(\\d+)/(\\d+)"))) {
 		/* String is a valid fraction format */
-		uint32_t a = std::stoi(matches[2].str());
-		uint32_t b = std::stoi(matches[3].str());
+		uint64_t a = std::stoi(matches[2].str());
+		uint64_t b = std::stoi(matches[3].str());
 		bool negative = (matches[1].str() == "-");
 		return Rational {a, b, negative};
 
@@ -75,13 +76,14 @@ class Rational {
 
     public:
 	/** Constructor creating a Rational instance from the numerator a, denominator b and sign boolean */
-	Rational(uint32_t a, uint32_t b, bool negative = false) : m_a{a}, m_b{b}, m_negative{negative} {
+	Rational(uint64_t a, uint64_t b, bool negative = false) : m_a{a}, m_b{b}, m_negative{negative} {
 	    if(m_b == 0)
 		throw std::runtime_error {"Rational Error: Denominator can't be zero!"};
 	    this->simplify();
 	}
 	/** Constructor creating a Rational instance from an integer */
-	Rational(int number) : Rational{static_cast<uint32_t>(number), 1, (number < 0)} {}
+	Rational(int number) : Rational{static_cast<uint64_t>(number), 1, (number < 0)} {}
+	Rational(uint64_t number) : Rational{number, 1, false} {}
 	/** Constructor creating a Rational instance from a floating point number */
 	Rational(float number) {
 	    *this = Rational::fromFloat(number);
@@ -106,11 +108,11 @@ class Rational {
 	}
 
 	/** Returns the numerator of the Rational instance */
-	uint32_t getNumerator(void) {
+	uint64_t getNumerator(void) {
 	    return m_a;
 	}
 	/** Returns the denominator of the Rational instance */
-	uint32_t getDenominator(void) {
+	uint64_t getDenominator(void) {
 	    return m_b;
 	}
 	/** Returns whether the Rational instance is negative */
@@ -130,7 +132,7 @@ class Rational {
 		throw std::runtime_error {"Rational Error: Zero has no inverse element"};
 	    }
 	    /* Invert a and b */
-	    uint32_t oldA = m_a;
+	    uint64_t oldA = m_a;
 	    m_a = m_b;
 	    m_b = oldA;
 	    return *this;
@@ -204,7 +206,7 @@ class Rational {
 		this->m_b *= rhs.m_b;
 	    }
 	    /* Set the corresponding a and negative bool */
-	    this->m_a = static_cast<uint32_t>(std::abs(result));
+	    this->m_a = static_cast<uint64_t>(std::abs(result));
 	    this->m_negative = (result < 0);
 	    /* Simplify the fraction and return reference */
 	    this->simplify();
@@ -212,6 +214,11 @@ class Rational {
 	}
 
 	Rational& operator*=(const Rational& rhs) {
+	    /* Check for overflow in multiplication */
+	    if(rhs.m_a != 0 && this->m_a >= std::numeric_limits<uint64_t>::max() / rhs.m_a)
+		throw std::overflow_error{"Rational multiplication numerator overflow"};
+	    if(rhs.m_b != 0 && this->m_b >= std::numeric_limits<uint64_t>::max() / rhs.m_b)
+		throw std::overflow_error{"Rational multiplication denominator overflow"};
 	    /* Multiply a and b of both sides */
 	    this->m_a *= rhs.m_a;
 	    this->m_b *= rhs.m_b;
